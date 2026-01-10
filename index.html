@@ -1,22 +1,112 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="generator" content="GitLab Pages">
-    <title>Plain HTML site using GitLab Pages</title>
-    <link rel="stylesheet" href="style.css">
-  </head>
-  <body>
-    <div class="navbar">
-      <a href="https://pages.gitlab.io/plain-html/">Plain HTML Example</a>
-      <a href="https://gitlab.com/pages/plain-html/">Repository</a>
-      <a href="https://gitlab.com/pages/">Other Examples</a>
-    </div>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Enzyme vs. Damaged Sequence Impact Analysis</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f4f6f8;
+      padding: 24px;
+      max-width: 900px;
+      margin: auto;
+    }
+    textarea {
+      width: 100%;
+      height: 140px;
+      font-family: monospace;
+      margin-bottom: 12px;
+      padding: 8px;
+    }
+    button {
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .box {
+      background: white;
+      border-radius: 8px;
+      padding: 16px;
+      margin-top: 16px;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
 
-    <h1>Hello World!</h1>
-    This is a simple plain-HTML website on GitLab Pages, without any fancy static site generator.
-    <p>
-    </p>
-  </body>
+<body>
+
+<h1>Enzyme vs. Damaged Sequence Impact Analysis</h1>
+
+<h3>Reference (Functioning) Sequence</h3>
+<textarea id="ref"></textarea>
+
+<h3>Damaged Sequence</h3>
+<textarea id="damaged"></textarea>
+
+<button onclick="analyze()">Preview Functional Annotation</button>
+
+<div id="result"></div>
+
+<script>
+async function analyze() {
+  const ref = document.getElementById("ref").value.trim();
+  const damaged = document.getElementById("damaged").value.trim();
+  const result = document.getElementById("result");
+
+  if (!ref || !damaged) {
+    result.innerHTML = "<p class='error'>Both sequences are required.</p>";
+    return;
+  }
+
+  result.innerHTML = "<p>Loading analysis…</p>";
+
+  try {
+    const response = await fetch(
+      "https://tanushscifair.nareddy-t1.workers.dev",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reference_sequence: ref,
+          damaged_sequence: damaged
+        })
+      }
+    );
+
+    const data = await response.json();
+
+    result.innerHTML = `
+      <div class="box">
+        <strong>UniProt Accession:</strong> ${data.uniprot_accession || "N/A"}<br/>
+        <strong>AlphaFold:</strong>
+        <a href="${data.alphafold_url}" target="_blank">
+          ${data.alphafold_id || "N/A"}
+        </a>
+      </div>
+
+      <div class="box">
+        <strong>Domains</strong>
+        <ul>
+          ${(data.domains || []).map(d =>
+            `<li>${d.name} (${d.start}–${d.end})</li>`
+          ).join("")}
+        </ul>
+      </div>
+
+      <div class="box">
+        <strong>Biological Consequence</strong>
+        <p>${data.analysis?.consequence || "No analysis available."}</p>
+      </div>
+    `;
+  } catch (err) {
+    result.innerHTML = `<p class="error">API error: ${err.message}</p>`;
+  }
+}
+</script>
+
+</body>
 </html>
 
