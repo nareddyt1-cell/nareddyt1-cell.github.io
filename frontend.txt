@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Enzyme vs. Damaged Sequence Impact Analysis</title>
+
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f8fafc;
+      margin: 0;
+      padding: 2rem;
+    }
+
+    h1 {
+      margin-bottom: 1rem;
+    }
+
+    textarea {
+      width: 100%;
+      height: 140px;
+      font-family: monospace;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1.2rem;
+      background: black;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .box {
+      padding: 1rem;
+      border-radius: 14px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
+
+    .amber { background: #fde68a; }
+    .sky { background: #bae6fd; }
+    .blue { background: #dbeafe; }
+    .gray { background: #f1f5f9; }
+
+    .diff {
+      background: #ef4444;
+      color: white;
+      padding: 0 3px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    iframe {
+      width: 100%;
+      height: 500px;
+      border-radius: 12px;
+      border: 1px solid #ddd;
+    }
+
+    .hidden { display: none; }
+  </style>
+</head>
+
+<body>
+
+<h1>Enzyme vs. Damaged Sequence Impact Analysis</h1>
+
+<div class="grid">
+  <textarea id="ref" placeholder="Reference (functioning) enzyme sequence"></textarea>
+  <textarea id="dmg" placeholder="Damaged enzyme sequence"></textarea>
+</div>
+
+<button onclick="analyze()">Preview Functional Annotation</button>
+
+<div id="domains" class="grid"></div>
+
+<div id="diffBox" class="box gray hidden">
+  <h3>Damaged Sequence Differences</h3>
+  <p id="diffSeq"></p>
+</div>
+
+<div id="bioBox" class="box blue hidden">
+  <h3>Biological Consequence of Detected Differences</h3>
+  <p id="bioText"></p>
+</div>
+
+<div id="compareBox" class="box sky hidden">
+  <h3>Comparative Insight</h3>
+  <p id="compareText"></p>
+</div>
+
+<div id="structureBox" class="box hidden">
+  <h3>3D Structure (AlphaFold)</h3>
+  <iframe id="viewer"></iframe>
+</div>
+
+<script>
+const API_URL = "https://enzyme-damage-api.YOURNAME.workers.dev";
+const MOLSTAR_URL = "https://alphafold.ebi.ac.uk/files";
+
+function clean(seq) {
+  return seq.replace(/\s+/g, "").toUpperCase();
+}
+
+function highlight(ref, dmg) {
+  let out = "";
+  let diffCount = 0;
+
+  const max = Math.max(ref.length, dmg.length);
+  for (let i = 0; i < max; i++) {
+    const r = ref[i] || "-";
+    const d = dmg[i] || "-";
+    if (r !== d) {
+      diffCount++;
+      out += `<span class="diff">${d}</span>`;
+    } else {
+      out += d;
+    }
+  }
+  return { out, diffCount };
+}
+
+async function analyze() {
+  const ref = clean(document.getElementById("ref").value);
+  const dmg = clean(document.getElementById("dmg").value);
+
+  if (!ref || !dmg) return alert("Both sequences are required.");
+
+  const res = await fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      reference_sequence: ref,
+      damaged_sequence: dmg
+    })
+  });
+
+  const data = await res.json();
+
+  // Domains
+  const domBox = document.getElementById("domains");
+  domBox.innerHTML = "";
+
+  (data.domains || []).forEach(d => {
+    domBox.innerHTML += `
+      <div class="box amber">
+        <strong>${d.name}</strong><br/>
+        Residues ${d.start}–${d.end}<br/>
+        <small>${d.description}</small>
+      </div>
+    `;
+  });
+
+  // Differences
+  const diff = highlight(ref, dmg);
+  document.getElementById("diffSeq").innerHTML = diff.out;
+  document.getElementById("diffBox").classList.remove("hidden");
+
+  // Biological consequence
+  document.getElementById("bioText").innerText =
+    diff.diffCount === 0
+      ? "No functional differences detected."
+      : "Detected differences may alter folding, stability, or enzymatic activity depending on affected regions.";
+
+  document.getElementById("bioBox").classList.remove("hidden");
+
+  // Comparative insight
+  document.getElementById("compareText").innerText =
+    diff.diffCount === 0
+      ? "No damage-related differences detected."
+      : `${diff.diffCount} damage-related differences detected.`;
+
+  document.getElementById("compareBox").classList.remove("hidden");
+
+  // Structure
+  if (data.alphafold_id) {
+    document.getElementById("viewer").src =
+      `${MOLSTAR_URL}/${data.alphafold_id}-model_v4.pdb`;
+    document.getElementById("structureBox").classList.remove("hidden");
+  }
+}
+</script>
+
+</body>
+</html>
