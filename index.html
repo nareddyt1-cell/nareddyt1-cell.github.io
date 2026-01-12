@@ -89,19 +89,19 @@
 
   <div class="panel">
 
-    <!-- Reference / Functional Sequence -->
+    <!-- Reference sequence -->
     <textarea
       id="referenceSequence"
       placeholder="Paste reference (functional) enzyme sequence"
     ></textarea>
 
-    <!-- Damaged Sequence -->
+    <!-- Damaged sequence -->
     <textarea
       id="damagedSequence"
-      placeholder="Paste damaged / altered enzyme sequence"
+      placeholder="Paste damaged enzyme sequence"
     ></textarea>
 
-    <button onclick="runAnalysis()">Preview Functional Annotation</button>
+    <button onclick="runAnalysis()">Preview Functionalty</button>
 
     <div id="status"></div>
 
@@ -148,7 +148,7 @@
 
       try {
         const response = await fetch(
-          "https://backend123-xbsm.onrender.com/analyze",  // 
+          "https://backend123-xbsm.onrender.com/analyze", 
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -159,12 +159,11 @@
           }
         );
 
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText);
-        }
-
         const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || "Analysis failed");
+        }
 
         document.getElementById("uniprot").textContent = data.uniprot_id;
         document.getElementById("damage").textContent = data.damage_type;
