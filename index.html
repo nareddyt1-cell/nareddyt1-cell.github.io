@@ -1,190 +1,216 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Enzyme vs. Damaged Sequence Impact Analysis</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="UTF-8">
+<title>Pancreatic Enzyme Functional Analyzer</title>
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #0f172a;
-      color: #e5e7eb;
-      padding: 20px;
-    }
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+  padding: 20px;
+}
 
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
+h1 {
+  text-align: center;
+}
 
-    .panel {
-      background: #020617;
-      padding: 16px;
-      border-radius: 12px;
-      max-width: 900px;
-      margin: auto;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-    }
+.container {
+  max-width: 900px;
+  margin: auto;
+}
 
-    textarea, button {
-      width: 100%;
-      padding: 12px;
-      margin-top: 12px;
-      border-radius: 8px;
-      border: none;
-      font-size: 15px;
-    }
+.box {
+  background: #020617;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
 
-    textarea {
-      background: #020617;
-      color: white;
-      border: 1px solid #334155;
-      font-family: monospace;
-      height: 120px;
-    }
+.blue { border-left: 6px solid #3b82f6; }
+.red { border-left: 6px solid #ef4444; }
+.green { border-left: 6px solid #22c55e; }
+.purple { border-left: 6px solid #a855f7; }
 
-    button {
-      background: #2563eb;
-      color: white;
-      cursor: pointer;
-      font-weight: bold;
-      <button onclick="alert('CLICK WORKS')">
-  Preview Functional Annotation
-</button>
+textarea {
+  width: 100%;
+  height: 110px;
+  font-family: monospace;
+  font-size: 14px;
+  background: #020617;
+  color: white;
+  border: 1px solid #334155;
+  border-radius: 6px;
+}
 
-    }
+button {
+  display: block;
+  margin: 20px auto;
+  padding: 12px 26px;
+  font-size: 16px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
 
-    button:hover {
-      background: #1d4ed8;
-    }
+button:hover {
+  background: #1d4ed8;
+}
 
-    .results {
-      margin-top: 20px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 12px;
-    }
+#status {
+  text-align: center;
+  margin-bottom: 10px;
+}
 
-    .box {
-      background: #020617;
-      border: 1px solid #334155;
-      padding: 14px;
-      border-radius: 8px;
-    }
-
-    .label {
-      font-weight: bold;
-      color: #93c5fd;
-      display: block;
-      margin-bottom: 4px;
-    }
-
-    .error {
-      color: #f87171;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-
-    .success {
-      color: #86efac;
-      margin-top: 10px;
-    }
-  </style>
+pre {
+  white-space: pre-wrap;
+}
+</style>
 </head>
 
 <body>
-  <h1>Enzyme vs. Damaged Sequence Impact Analysis</h1>
 
-  <div class="panel">
+<h1>Pancreatic Enzyme Functional Annotation</h1>
 
-    <label class="label">Functioning (Reference) Enzyme Sequence</label>
-    <textarea id="refSeq" placeholder="Paste functioning pancreatic enzyme sequence"></textarea>
+<div class="container">
 
-    <label class="label">Damaged Enzyme Sequence</label>
-    <textarea id="damSeq" placeholder="Paste damaged enzyme sequence"></textarea>
-
-    <button onclick="runAnalysis()">Preview Functional Annotation</button>
-
-    <div id="status"></div>
-
-    <div class="results" id="results" style="display:none;">
-      <div class="box">
-        <span class="label">Identified Pancreatic Enzyme</span>
-        <span id="enzyme"></span>
-      </div>
-
-      <div class="box">
-        <span class="label">UniProt Accession</span>
-        <span id="uniprot"></span>
-      </div>
-
-      <div class="box">
-        <span class="label">Damage Classification</span>
-        <span id="damage"></span>
-      </div>
-
-      <div class="box">
-        <span class="label">Functional Impact</span>
-        <span id="impact"></span>
-      </div>
-
-      <div class="box">
-        <span class="label">Confidence</span>
-        <span id="confidence"></span>
-      </div>
-    </div>
+  <div class="box blue">
+    <h3>Functioning Pancreatic Enzyme Sequence</h3>
+    <textarea id="refSeq" placeholder="Paste functioning sequence here"></textarea>
   </div>
 
-  <script>
-    const API_URL = https://backend123-xbsm.onrender.com/analyze";
+  <div class="box red">
+    <h3>Damaged Pancreatic Enzyme Sequence</h3>
+    <textarea id="damSeq" placeholder="Paste damaged sequence here"></textarea>
+  </div>
 
-    async function runAnalysis() {
-      const reference_sequence = document.getElementById("refSeq").value.trim();
-      const damaged_sequence = document.getElementById("damSeq").value.trim();
-      const status = document.getElementById("status");
-      const results = document.getElementById("results");
+  <button onclick="runAnalysis()">Preview Functional Annotation</button>
 
-      status.innerHTML = "";
-      results.style.display = "none";
+  <div id="status"></div>
 
-      if (!reference_sequence || !damaged_sequence) {
-        status.innerHTML = "<div class='error'>Both sequences are required.</div>";
-        return;
-      }
+  <div class="box green">
+    <h3>Identified Pancreatic Enzyme</h3>
+    <pre id="enzyme">—</pre>
+  </div>
 
-      status.innerHTML = "<div class='success'>Analyzing sequence…</div>";
+  <div class="box purple">
+    <h3>Damage Analysis</h3>
+    <pre id="damage">—</pre>
+  </div>
 
-      try {
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            reference_sequence,
-            damaged_sequence
-          })
-        });
+</div>
 
-        const data = await response.json();
+<script>
+/* <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Pancreatic Enzyme Functional Analyzer</title>
 
-        if (!response.ok || data.error) {
-          throw new Error(data.error || "API failure");
-        }
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #0f172a;
+  color: #e5e7eb;
+  padding: 20px;
+}
 
-        document.getElementById("enzyme").textContent = data.enzyme;
-        document.getElementById("uniprot").textContent = data.uniprot_id;
-        document.getElementById("damage").textContent = data.damage_type;
-        document.getElementById("impact").textContent = data.functional_impact;
-        document.getElementById("confidence").textContent = data.confidence;
+h1 {
+  text-align: center;
+}
 
-        results.style.display = "grid";
-        status.innerHTML = "";
+.container {
+  max-width: 900px;
+  margin: auto;
+}
 
-      } catch (err) {
-        status.innerHTML = "<div class='error'>Backend request failed.</div>";
-        console.error(err);
-      }
-    }
-  </script>
-</body>
-</html>
+.box {
+  background: #020617;
+  border: 1px solid #334155;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.blue { border-left: 6px solid #3b82f6; }
+.red { border-left: 6px solid #ef4444; }
+.green { border-left: 6px solid #22c55e; }
+.purple { border-left: 6px solid #a855f7; }
+
+textarea {
+  width: 100%;
+  height: 110px;
+  font-family: monospace;
+  font-size: 14px;
+  background: #020617;
+  color: white;
+  border: 1px solid #334155;
+  border-radius: 6px;
+}
+
+button {
+  display: block;
+  margin: 20px auto;
+  padding: 12px 26px;
+  font-size: 16px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+#status {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+pre {
+  white-space: pre-wrap;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Pancreatic Enzyme Functional Annotation</h1>
+
+<div class="container">
+
+  <div class="box blue">
+    <h3>Functioning Pancreatic Enzyme Sequence</h3>
+    <textarea id="refSeq" placeholder="Paste functioning sequence here"></textarea>
+  </div>
+
+  <div class="box red">
+    <h3>Damaged Pancreatic Enzyme Sequence</h3>
+    <textarea id="damSeq" placeholder="Paste damaged sequence here"></textarea>
+  </div>
+
+  <button onclick="runAnalysis()">Preview Functional Annotation</button>
+
+  <div id="status"></div>
+
+  <div class="box green">
+    <h3>Identified Pancreatic Enzyme</h3>
+    <pre id="enzyme">—</pre>
+  </div>
+
+  <div class="box purple">
+    <h3>Damage Analysis</h3>
+    <pre id="damage">—</pre>
+  </div>
+
+</div>
+
+<script>
+/* https://backend123-xbsm.onrender.com
+
